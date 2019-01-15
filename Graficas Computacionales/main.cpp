@@ -2,6 +2,7 @@
 #include "DebugFunccions.h"
 #include "CCanvas.h"
 
+void CreateCanvas();
 
 void TestCanvas(CCanvas&);
 
@@ -9,28 +10,65 @@ void PrintMenuOption();
 
 int main(){
 
-	{
-		CCanvas Test(3, 6, 4, 4);
+	//{
+	//	CCanvas Test(3, 6, 4, 4);
 
-		Test.PrintMatriceValues();
-		Test.PrintMatriceAddresses();
+	//	Test.PrintMatriceValues();
+	//	Test.PrintMatriceAddresses();
 
-	//	Test.Set(3, 5,200);
+	////	Test.Set(3, 5,200);
 
-		//Test.PrintMatrice();
+	//	//Test.PrintMatrice();
 
-		//int Temp = Test.Get(3, 5);
+	//	//int Temp = Test.Get(3, 5);
 
-		//std::cout << '{'<<Temp<<"}\n";
-		//Test.PrintMatriceValues();
-		TestCanvas(Test);
-	}
+	//	//std::cout << '{'<<Temp<<"}\n";
+	//	//Test.PrintMatriceValues();
+	//	TestCanvas(Test);
+	//}
+	CreateCanvas();
+
 
 	Stop();
 	return 0;
 }
 
-// TODO : Agregar un menu para manipular el objeto CCanvas 
+void CreateCanvas(){
+	unsigned int X = 0;
+	unsigned int Y = 0;
+	unsigned int DataSize = 0;
+	int DefaultValue = 0;
+	short eleccion = 0;
+
+	using std::cin;
+
+
+	printf("Cuantas fillas quieres en el canvas \n");
+	std::cin >> X;
+	printf("Cuantas Columnas quieres en el canvas \n");
+	std::cin >> Y;
+	printf("Que tan grande sera el tipo de dato en Bytes \n");
+	cin >> DataSize;
+	printf("Ahora solo necesitamos el valor que va a tener toda la matrice \n");
+	cin >> DefaultValue;
+	printf("Desea Reniciar \n 0) No \n 1) Si \n");
+	cin >> eleccion;
+	if(eleccion == 0)
+	{
+		CCanvas canvas(X,Y,DataSize,DefaultValue);
+		TestCanvas(canvas);
+	}
+	else if(eleccion == 1)
+	{
+		bool Reniciar = false;
+		printf("Quiere reniciar \n 0) No \n 1) Si \n");
+		if (Reniciar)
+		{
+			CreateCanvas();
+		}
+	}
+}
+ 
 void TestCanvas(CCanvas &canvas)
 {
 	//PrintMenuOption();

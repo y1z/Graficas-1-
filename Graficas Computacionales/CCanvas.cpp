@@ -22,7 +22,7 @@ CCanvas::CCanvas(unsigned int X, unsigned int Y,unsigned int dataSize, int Defau
 		// assigns the value to the matrice of the buffer
 		while(mptr_Buffer < mptr_Ending)
 		{
-			*mptr_Buffer = DefaultValue;
+			FormatoSetValue(DefaultValue);
 			mptr_Buffer += m_sizeDataType;
 		}
 		ResetBufferPointerBeginning();
@@ -42,7 +42,7 @@ CCanvas::~CCanvas(){
 }
 
 
-
+/*
 int CCanvas::Get(unsigned int X, unsigned int Y)
 {
 	int Value = std::numeric_limits<int>::min();
@@ -54,6 +54,24 @@ int CCanvas::Get(unsigned int X, unsigned int Y)
 	}
 	ResetBufferPointerBeginning();
 	return Value;
+}*/
+
+int CCanvas::Get(float X, float Y){
+
+	int RetValue = std::numeric_limits<unsigned char>::min();
+
+	if (isInputValid(X, Y))
+	{
+		// llegar a la fila desiada 
+		mptr_Buffer += static_cast<int>((m_Rows * m_sizeDataType) * X);
+		// llegar a la columna desiada 
+		mptr_Buffer += static_cast<int>((m_Pitch* (m_Columns - 1) ) * Y);
+
+		RetValue = *mptr_Buffer;
+	}
+	ResetBufferPointerBeginning();
+
+	return RetValue;
 }
 
 
@@ -62,8 +80,18 @@ void CCanvas::Set(unsigned int X, unsigned int Y , int Value)
 	if(isInputValid(X,Y))
 	{
 		mptr_Buffer += ((Y - 1) * m_Pitch) + (X - 1) * m_sizeDataType;
-		*mptr_Buffer = (unsigned char)Value;
+		FormatoSetValue(Value);
 	}
+	ResetBufferPointerBeginning();
+}
+
+void CCanvas::Set(float X, float Y, int Value){
+	// llegar a la fila desiada 
+	mptr_Buffer += static_cast<int>((m_Rows * m_sizeDataType) * X);
+	// llegar a la columna desiada 
+	mptr_Buffer += static_cast<int>((m_Pitch * (m_Columns - 1)) * Y);
+
+	FormatoSetValue(Value);
 
 	ResetBufferPointerBeginning();
 }
@@ -76,6 +104,8 @@ void CCanvas::PrintMatriceValues()
 	// to know where to place the character '\n'
 	unsigned int Count = 0;
 	std::cout << "---Here are the values of the matrice--- \n\n";
+
+	// Interrate though the matrix 
 	while(mptr_Buffer < mptr_Ending)
 	{
 
@@ -132,7 +162,7 @@ void CCanvas::DrawHLine(unsigned int X, unsigned int Y, unsigned int Length, int
 
 			for (int i = 0; i < Length; ++i)
 			{
-				*mptr_Buffer = Value;
+				FormatoSetValue(Value);
 				mptr_Buffer += m_sizeDataType;
 			}
 		}
@@ -155,12 +185,25 @@ void CCanvas::DrawVLine(unsigned int X, unsigned int Y, unsigned int Length, int
 
 			for (int i = 0; i < Length; ++i)
 			{
-				*mptr_Buffer = Value;
+				FormatoSetValue(Value);
 				mptr_Buffer += m_Pitch;
 			}
 		}
 	}
 	ResetBufferPointerBeginning();
+}
+
+void CCanvas::CopyTo(CCanvas& other)
+{
+	float intercambio = 0.00f;
+	for (float i = 0.00f; i < 1.00f; i += 0.02f)
+	{
+		for(float j = 0.00f; j < 1.00f; j+= 0.02f)
+		{
+			
+		}
+	}
+
 }
 
 /* check if the size of the data is in a format we can 
@@ -169,16 +212,28 @@ bool CCanvas::isDataSizeSupported(unsigned int DataSize)
 {
 	switch (DataSize)
 	{
-		case(Formatos::DataSize_1B):
-		 formato = DataSize_1B;
+		// 1 
+		case(Formatos::DataSize_R):
+		 formato = DataSize_R;
 		 return true;
 
-		case(Formatos::DataSize_4B):
-		 formato = DataSize_4B;
+		 // 2
+		case(Formatos::DataSize_RG):
+			formato = DataSize_RG;
+			return true;
+
+			// 3
+		case(Formatos::DataSize_RGB):
+			formato = DataSize_RGB;
+			return true;
+
+		 // 4 
+		case(Formatos::DataSize_RGBA):
+		 formato = DataSize_RGBA;
 		 return true;
 
 		default:
-	   	 formato = Error;
+	   formato = Error;
 		 std::cerr << "[ERROR] Size of data not Supported for CCanvas";
 		 return false;
 		break;
@@ -189,7 +244,7 @@ bool CCanvas::isInputValid(unsigned int X, unsigned int Y)
 {
 	if(formato == Formatos::Error)
 	{
-		std::cerr << "[ERROR] Format of data not soported cannot ANYTHING \n";
+		std::cerr << "[ERROR] Format of data not supported cannot do ANYTHING \n";
 	}
 
 	if (X < 1 || Y < 1) 
@@ -211,7 +266,68 @@ bool CCanvas::isInputValid(unsigned int X, unsigned int Y)
 	return true;
 }
 
+bool CCanvas::isInputValid(float X, float Y)
+{
+	if (X < 0.0f || Y < 0.0f)
+	{
+		std::clog << "[ERROR] input of 'x' or 'y' is lesser than 0\n";
+		return false;
+	}
+	else if (X > 1.0f || Y > 1.0f)
+	{
+		std::clog << "[ERROR] input of 'x' or 'y' is Greater than 0 \n";
+		return false;
+	}
+	return true;
+}
+
 void CCanvas::ResetBufferPointerBeginning()
 {
 	mptr_Buffer = mptr_Beginning;
+}
+
+/*!
+
+	/param Value es el value que sera asignado en 
+	diferentes espacios de memoria dependiendo del formato 
+
+*/
+void CCanvas::FormatoSetValue(int Value)
+{
+	// para que el puntero pueda regresar al su lugar de oringin 
+	void * ResetPtr = mptr_Buffer;
+
+	if(formato == Formatos::DataSize_R)
+	{
+		*mptr_Buffer = Value;
+	}
+
+	else if(formato == Formatos::DataSize_RG)
+	{
+		for (int i = 0; i < 2; ++i)
+		{
+			*mptr_Buffer = Value;
+			mptr_Buffer++;
+		}
+	}
+	else if(formato == Formatos::DataSize_RGB)
+	{
+		for(int i= 0; i<3;++i)
+		{
+			*mptr_Buffer = Value;
+			mptr_Buffer++;
+		}		
+	}
+	else if(formato == Formatos::DataSize_RGBA)
+	{
+		for(int i= 0; i<4;++i)
+		{
+			*mptr_Buffer = Value;
+			mptr_Buffer++;
+		}		
+	}
+
+
+	mptr_Buffer = static_cast<unsigned char*> (ResetPtr);
+	ResetPtr = nullptr;
 }

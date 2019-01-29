@@ -1,37 +1,36 @@
-/**
-*
-*
-*
-*
-*
-*
+/*!
+	\class CCanvas 
+	The Canvas is an interface for manipulation of a buffer .
+	
 */
 
 #pragma once
 #include<iostream>
 #include <cstdlib>
+#include <cinttypes>
 #include <limits>
+
 class CCanvas
 {
 public: // constructor y destructor 
-	CCanvas(unsigned int X, unsigned int Y, unsigned int dataSize, int DefaultValue);
+	CCanvas(uint32_t X, uint32_t Y, uint32_t dataSize, int DefaultValue);
+	CCanvas(uint32_t X, uint32_t Y, uint32_t dataSize, float DefaultValue);
 	virtual ~CCanvas();
 protected:// Variables 
-	// para saber el tamaño de nuestro dato 
-	unsigned int m_sizeDataType;
-	// para saber el tamaño del buffer 
-	unsigned int m_sizeBuffer = 0;
-	// para saber la cantidad de fillas en total 
-	unsigned int m_Rows = 0;
-	// para saber la cantidad de columnas en total 
-	unsigned int m_Columns = 0;
-	// para saber el tamaño de una fila 
-	unsigned long long m_Pitch = 0;
-	// para conocer el inicio y final de nuestro buffer 
-	unsigned char *mptr_Beginning = nullptr;
-	unsigned char *mptr_Ending = nullptr;
-	// Aqui se ubica el buffer 
-	unsigned char *mptr_Buffer = nullptr;
+	
+	uint32_t m_sizeDataType;/*!<To know how much memory are cells take up */
+	
+	uint32_t m_sizeBuffer = 0;/*!<To know how many cells the buffer takes up  */
+
+	uint32_t m_RowLength = 0;/*!< To know how many Rows existe per column*/
+
+	uint32_t m_ColumnsCount = 0;/*!<para saber la cantidad de columnas en total */
+
+	uint64_t m_Pitch = 0;/*!<To have the ability to move 1 column in the buffer */
+
+	uint8_t *mptr_Beginning = nullptr;/*!<To know where are buffer begins and reset the buffer ptr*/
+	uint8_t *mptr_Ending = nullptr;/*!<To iterate through the buffer without going out of bounds */
+	uint8_t *mptr_Buffer = nullptr;/*!<The ptr to the buffer itself  */
 protected:
 	
 	enum  Formatos : unsigned int
@@ -40,37 +39,47 @@ protected:
 		DataSize_R = 1,
 		DataSize_RG = 2,
 		DataSize_RGB = 3,
-		DataSize_RGBA = 4
+		DataSize_RGBA = 4,
+
+		DataSize_RGBAF32 = 16
 	};
 
-	Formatos formato = Formatos::DataSize_R;
-
+	Formatos formato = Formatos::DataSize_R;//<! Aqui se declara un valor por defecto 
 public:// Functions for the user 
 
-	// return the value stored on the 'X' and 'Y' 
-	// positions 
-	int Get(float X, float Y);
-	// set a value stored on the 'X' and 'Y' positions
-	void Set(unsigned int X, unsigned int Y, int Value);
-	void Set(float X, float Y,int Value);
-	// print values store in the matrice 
+	//!Encuentra el value que esta en 'X' y 'Y' 
+	//! Para retornarlo 
+	float Get(float X, float Y);
+	//! Usando la pose 'X' cobinado con 'Y' para encontra una celda 
+	//! cambiar el valor que esta dentro de la misma 
+	void Set(float X, float Y, int Value);
+	void Set(float X, float Y, float Value);
+	//! imprime los valores de la matrice 
 	void PrintMatriceValues();
-	// print the addresses 
+	//! imprime las direcciones de memoria 
 	void PrintMatriceAddresses();
-	// fills a row with a value 
-	void DrawHLine(unsigned int X, unsigned int Y, unsigned int Length , int Value);
-	// fills a column with a value 
-	void DrawVLine(unsigned int X, unsigned int Y, unsigned int Length , int Value);
-	// Esta crear una copia de esta matrix a otra matrix 
+	//! fills a row with a value 
+	void DrawHLine(uint32_t X, uint32_t Y, uint32_t Length, uint8_t Value);
+	//! fills a column with a value 
+	void DrawVLine(uint32_t X, uint32_t Y, uint32_t Length, uint8_t Value);
+	//! filla row and column in a way to make a line 
+	void DrawDiagonal(float X1, float Y1,float X2, float Y2, uint8_t Value);
+	//! Copies Value of 1 buffer to a different buffer 
 	void CopyTo(CCanvas&);
 private:// Funtions to help other functions 
 
-	bool isDataSizeSupported(unsigned int);
+	bool isDataSizeSupported(uint32_t);
 
-	bool isInputValid(unsigned int, unsigned int);
+	bool isInputValid(uint32_t, uint32_t);
 	bool isInputValid(float, float);
 
 	void ResetBufferPointerBeginning();
-	// Give value to seccions of the matrix. 
-	void FormatoSetValue(int Value);
+	//! Asigna valores dependiendo del formato 
+	template<typename T>
+	void SetValueByFormat(T Value);
+
+	template<typename T>
+	void Init(uint32_t X, uint32_t Y, uint32_t dataSize, T DefaultValue);
+
 };
+
